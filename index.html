@@ -1,23 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Calculus Notes - Section 4.2: Integration Theory</title>
+    <title>Calculus Notes - Section 4.2</title>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #fdfdfd; padding: 25px; color: #222; line-height: 1.6; }
-        h2 { border-bottom: 1px solid #ccc; padding-bottom: 10px; font-weight: normal; color: #444; }
-        
-        #chat-window { 
-            height: 450px; 
-            border: 1px dashed #bbb; 
-            overflow-y: scroll; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            background: #fff; 
-        }
-
+        body { font-family: 'Times New Roman', serif; background: #fdfdfd; padding: 25px; color: #222; }
+        #chat-window { height: 450px; border: 1px dashed #bbb; overflow-y: scroll; padding: 15px; background: #fff; margin-bottom: 15px; }
         .msg { margin-bottom: 10px; font-size: 14px; border-left: 2px solid #3498db; padding-left: 10px; }
         .sender { font-weight: bold; color: #2980b9; font-family: monospace; font-size: 12px; }
-        
         .input-area { display: flex; gap: 8px; }
         input { flex-grow: 1; padding: 12px; border: 1px solid #ccc; outline: none; }
         button { padding: 10px 25px; background: #eee; border: 1px solid #aaa; cursor: pointer; font-weight: bold; }
@@ -26,10 +15,7 @@
 <body>
 
     <h2>Unit 4: Limits and Continuous Functions</h2>
-    <p><i>Peer-to-peer data synchronization for calculus variables.</i></p>
-
     <div id="chat-window"></div>
-    
     <div class="input-area">
         <input type="text" id="msgInput" placeholder="Enter variable..." autocomplete="off">
         <button id="sendBtn">21</button>
@@ -37,7 +23,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // We MUST specify the database location for Europe
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -51,27 +36,22 @@
 
         const app = initializeApp(firebaseConfig);
         
-        // CRITICAL FIX: Directing the app to Belgium
-        const db = getDatabase(app, "https://classchat-afda9-default-rdb.europe-west1.firebasedatabase.app");
+        // THE FIX: "rtdb" + "europe-west1"
+        const db = getDatabase(app, "https://classchat-afda9-default-rtdb.europe-west1.firebasedatabase.app");
         
         const chatRef = ref(db, "messages");
-
-        const username = prompt("Agent Name:") || "User_" + Math.floor(Math.random()*100);
+        const username = prompt("Agent Name:") || "Agent_" + Math.floor(Math.random()*100);
 
         const input = document.getElementById("msgInput");
         const sendBtn = document.getElementById("sendBtn");
         const windowDiv = document.getElementById("chat-window");
 
-        function sendMessage() {
-            const val = input.value.trim();
-            if (val !== "") {
-                push(chatRef, { sender: username, message: val });
+        sendBtn.onclick = () => {
+            if (input.value.trim() !== "") {
+                push(chatRef, { sender: username, message: input.value });
                 input.value = "";
             }
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        input.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+        };
 
         onChildAdded(chatRef, (snapshot) => {
             const data = snapshot.val();
@@ -82,12 +62,8 @@
             windowDiv.scrollTop = windowDiv.scrollHeight; 
         });
 
-        // The "Teacher is coming" Panic Key (Esc)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") {
-                window.location.href = "https://en.wikipedia.org/wiki/Calculus";
-            }
-        });
+        // Panic Key
+        window.onkeydown = (e) => { if (e.key === "Escape") window.location.href = "https://en.wikipedia.org/wiki/Calculus"; };
     </script>
 </body>
 </html>
