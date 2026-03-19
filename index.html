@@ -2,69 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ClassChat | Elite Edition</title>
+    <title>ClassChat | Multimedia Elite</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0b0e14; --surface: #1a1f26; --primary: #00d2ff; --text: #e1e1e1; --border: #2d343f; --sidebar: #13171f; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+        
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 320px; text-align: center; }
         .auth-btn { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
         .google-btn { background: #fff; color: #000; }
         .guest-btn { background: var(--primary); color: #000; }
+
         #app { display: none; flex-direction: row; height: 100vh; }
         #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         #room-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
-        .room-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .room-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
         .room-item.active { background: var(--primary); color: #000; font-weight: 700; }
+        
         #main-chat { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
         header { padding: 15px 25px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        #messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        #messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Message Styling */
         .msg { display: flex; gap: 10px; }
-        .pfp { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
-        .bubble { background: var(--surface); padding: 10px 14px; border-radius: 0 12px 12px 12px; border: 1px solid var(--border); max-width: 80%; }
+        .pfp { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+        .bubble { background: var(--surface); padding: 12px 16px; border-radius: 0 15px 15px 15px; border: 1px solid var(--border); max-width: 85%; }
+        
+        /* Media Embeds */
+        .embed-img { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border); }
+        .embed-vid { width: 100%; border-radius: 8px; margin-top: 10px; aspect-ratio: 16 / 9; }
+
+        /* Settings Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: 20px; width: 320px; border: 1px solid var(--border); }
+        .settings-row { margin-bottom: 15px; }
+        .settings-row label { display: block; font-size: 0.75rem; margin-bottom: 5px; color: var(--primary); font-weight: bold; }
+        .settings-row input { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; box-sizing: border-box; }
+
+        .settings-footer { padding: 15px; border-top: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .settings-footer:hover { background: var(--surface); }
+
         #video-wrap { display: none; position: absolute; inset: 0; background: #000; z-index: 50; }
-        #video-frame { width: 100%; height: 100%; border: none; }
-        .close-call { position: absolute; top: 10px; right: 10px; z-index: 60; background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .call-btn { background: var(--border); color: var(--primary); border: 1px solid var(--primary); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; }
+        .close-call { position: absolute; top: 10px; right: 10px; z-index: 60; background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1 style="color:var(--primary)">ClassChat</h1>
+            <h1 style="color:var(--primary); margin-bottom: 5px;">ClassChat</h1>
+            <p style="font-size: 0.8rem; opacity: 0.5; margin-bottom: 25px;">Encrypted Session v3.5</p>
             <button class="auth-btn google-btn" id="googleLogin">Sign in with Google</button>
             <button class="auth-btn guest-btn" id="showGuest">Enter as Guest</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">User Settings</h3>
+            <div class="settings-row">
+                <label>Nickname</label>
+                <input type="text" id="set-name">
+            </div>
+            <div class="settings-row">
+                <label>Chat Color</label>
+                <input type="color" id="set-color" style="height:40px; cursor:pointer;">
+            </div>
+            <div class="settings-row">
+                <label>PFP URL</label>
+                <input type="text" id="set-pfp" placeholder="https://...">
+            </div>
+            <button class="auth-btn guest-btn" id="save-settings">Save & Close</button>
         </div>
     </div>
 
     <div id="app">
         <div id="sidebar">
             <div class="sidebar-header">
-                <span style="font-weight:700">CHATS</span>
+                <span style="font-weight:700; letter-spacing: 1px;">CHATS</span>
                 <button id="createRoom" style="background:none; border:none; color:var(--primary); font-size:1.5rem; cursor:pointer;">+</button>
             </div>
             <div id="room-list"></div>
+            <div class="settings-footer" onclick="document.getElementById('settings-modal').style.display='flex'">
+                <span>⚙️</span> <span id="user-name-small">Settings</span>
+            </div>
         </div>
 
         <div id="main-chat">
             <header>
-                <span id="current-room-name">Select a Chat</span>
-                <button id="joinCall" class="call-btn" style="display:none;">📞 JOIN CALL</button>
+                <span id="current-room-name" style="font-weight:700">Select a Chat</span>
+                <button id="joinCall" style="display:none; background:none; border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 5px; cursor:pointer; font-size:0.7rem;">📞 JOIN CALL</button>
             </header>
 
             <div id="video-wrap">
                 <button class="close-call" id="leaveCallBtn">Leave Call</button>
-                <div id="video-frame"></div>
+                <div id="video-frame" style="height:100%"></div>
             </div>
 
             <div id="messages"></div>
             
             <div style="padding:20px; display:flex; gap:10px; background:var(--bg);">
-                <input type="text" id="msgInput" placeholder="Type a message..." style="flex-grow:1; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:10px; color:#fff; outline:none;">
-                <button id="sendBtn" style="background:var(--primary); border:none; padding:0 20px; border-radius:10px; cursor:pointer; font-weight:bold;">21</button>
+                <input type="text" id="msgInput" placeholder="Message or Link (YT/IMG/MP4)..." style="flex-grow:1; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:10px; color:#fff; outline:none;">
+                <button id="sendBtn" style="background:var(--primary); border:none; padding:0 25px; border-radius:10px; cursor:pointer; font-weight:bold; color:#000;">21</button>
             </div>
         </div>
     </div>
@@ -85,23 +126,57 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        // FIXED DATABASE URL FROM image_fc32cd.png
         const db = getDatabase(app, "https://classchat-afda9-default-rtdb.europe-west1.firebasedatabase.app");
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        let currentUser = { name: "Guest", color: "#00d2ff", pfp: "https://api.dicebear.com/7.x/bottts/svg" };
+        let currentUser = { name: "Guest", color: "#00d2ff", pfp: "https://api.dicebear.com/7.x/identicon/svg?seed=21" };
         let currentRoomId = null;
         let jitsiApi = null;
 
-        onAuthStateChanged(auth, (user) => { if (user) { currentUser.name = user.displayName; currentUser.pfp = user.photoURL; startApp(); } });
+        // FIXED GOOGLE LOGIN PERSISTENCE
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser.name = user.displayName;
+                currentUser.pfp = user.photoURL;
+                startApp();
+            }
+        });
+
         document.getElementById('googleLogin').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('showGuest').onclick = () => startApp();
 
         function startApp() {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
+            document.getElementById('user-name-small').innerText = currentUser.name;
+            document.getElementById('set-name').value = currentUser.name;
+            document.getElementById('set-pfp').value = currentUser.pfp;
             loadRooms();
+        }
+
+        // SETTINGS SAVE
+        document.getElementById('save-settings').onclick = () => {
+            currentUser.name = document.getElementById('set-name').value;
+            currentUser.color = document.getElementById('set-color').value;
+            currentUser.pfp = document.getElementById('set-pfp').value;
+            document.getElementById('user-name-small').innerText = currentUser.name;
+            document.getElementById('settings-modal').style.display = 'none';
+        };
+
+        // MEDIA PARSER
+        function parseMedia(text) {
+            const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const imgRegex = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
+            const vidRegex = /\.(mp4|webm|ogg)$/i;
+
+            const ytMatch = text.match(ytRegex);
+            if (ytMatch) return `<iframe class="embed-vid" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
+            
+            if (imgRegex.test(text)) return `<img src="${text}" class="embed-img">`;
+            if (vidRegex.test(text)) return `<video src="${text}" class="embed-vid" controls></video>`;
+            
+            return text;
         }
 
         document.getElementById('createRoom').onclick = () => {
@@ -127,22 +202,6 @@
             });
         }
 
-        document.getElementById('joinCall').onclick = () => {
-            document.getElementById('video-wrap').style.display = 'block';
-            const domain = "meet.jit.si";
-            const options = {
-                roomName: "ClassChat-" + currentRoomId,
-                parentNode: document.querySelector('#video-frame'),
-                userInfo: { displayName: currentUser.name }
-            };
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-        };
-
-        document.getElementById('leaveCallBtn').onclick = () => {
-            if (jitsiApi) jitsiApi.dispose();
-            document.getElementById('video-wrap').style.display = 'none';
-        };
-
         function loadMessages(roomId) {
             const msgDiv = document.getElementById('messages');
             msgDiv.innerHTML = "";
@@ -151,7 +210,7 @@
                 const d = snap.val();
                 const div = document.createElement('div');
                 div.className = 'msg';
-                div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><div style="font-size:0.7rem;font-weight:700;color:${d.color}">${d.sender}</div><div>${d.text}</div></div>`;
+                div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><div style="font-size:0.7rem;font-weight:700;color:${d.color}">${d.sender}</div><div>${parseMedia(d.text)}</div></div>`;
                 msgDiv.appendChild(div);
                 msgDiv.scrollTop = msgDiv.scrollHeight;
             });
@@ -166,6 +225,12 @@
             input.value = "";
         }
 
+        document.getElementById('joinCall').onclick = () => {
+            document.getElementById('video-wrap').style.display = 'block';
+            new JitsiMeetExternalAPI("meet.jit.si", { roomName: "ClassChat-" + currentRoomId, parentNode: document.querySelector('#video-frame'), userInfo: { displayName: currentUser.name } });
+        };
+
+        document.getElementById('leaveCallBtn').onclick = () => { document.getElementById('video-wrap').style.display = 'none'; document.getElementById('video-frame').innerHTML = ""; };
         document.getElementById('sendBtn').onclick = sendMessage;
         document.getElementById('msgInput').onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
         window.onkeydown = (e) => { if(e.key === 'Escape') window.location.href = "https://en.wikipedia.org/wiki/Calculus"; };
