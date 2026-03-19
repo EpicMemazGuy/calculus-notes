@@ -2,38 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ClassChat | Multimedia Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>ClassChat | Elite Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0b0e14; --surface: #1a1f26; --primary: #00d2ff; --text: #e1e1e1; --border: #2d343f; --sidebar: #13171f; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-        
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 320px; text-align: center; }
         .auth-btn { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
         .google-btn { background: #fff; color: #000; }
         .guest-btn { background: var(--primary); color: #000; }
-
         #app { display: none; flex-direction: row; height: 100vh; }
         #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         #room-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
         .room-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
         .room-item.active { background: var(--primary); color: #000; font-weight: 700; }
-        
         #main-chat { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
         header { padding: 15px 25px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         #messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        
         .msg { display: flex; gap: 10px; }
         .pfp { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
         .bubble { background: var(--surface); padding: 10px 14px; border-radius: 0 12px 12px 12px; border: 1px solid var(--border); max-width: 80%; }
-        
-        /* Video Container */
         #video-wrap { display: none; position: absolute; inset: 0; background: #000; z-index: 50; }
         #video-frame { width: 100%; height: 100%; border: none; }
-        .close-call { position: absolute; top: 10px; right: 10px; z-index: 60; background: red; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
-
+        .close-call { position: absolute; top: 10px; right: 10px; z-index: 60; background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .call-btn { background: var(--border); color: var(--primary); border: 1px solid var(--primary); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; }
     </style>
 </head>
@@ -41,8 +34,8 @@
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1>ClassChat</h1>
-            <button class="auth-btn google-btn" id="googleLogin">Google Login</button>
+            <h1 style="color:var(--primary)">ClassChat</h1>
+            <button class="auth-btn google-btn" id="googleLogin">Sign in with Google</button>
             <button class="auth-btn guest-btn" id="showGuest">Enter as Guest</button>
         </div>
     </div>
@@ -50,7 +43,7 @@
     <div id="app">
         <div id="sidebar">
             <div class="sidebar-header">
-                <span>CHATS</span>
+                <span style="font-weight:700">CHATS</span>
                 <button id="createRoom" style="background:none; border:none; color:var(--primary); font-size:1.5rem; cursor:pointer;">+</button>
             </div>
             <div id="room-list"></div>
@@ -58,25 +51,25 @@
 
         <div id="main-chat">
             <header>
-                <span id="current-room-name">ClassChat</span>
+                <span id="current-room-name">Select a Chat</span>
                 <button id="joinCall" class="call-btn" style="display:none;">📞 JOIN CALL</button>
             </header>
 
             <div id="video-wrap">
-                <button class="close-call" onclick="endCall()">Leave Call</button>
+                <button class="close-call" id="leaveCallBtn">Leave Call</button>
                 <div id="video-frame"></div>
             </div>
 
             <div id="messages"></div>
             
             <div style="padding:20px; display:flex; gap:10px; background:var(--bg);">
-                <input type="text" id="msgInput" placeholder="Type a message..." style="flex-grow:1; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:10px; color:#fff;">
-                <button id="sendBtn" style="background:var(--primary); border:none; padding:0 20px; border-radius:10px; cursor:pointer; font-weight:bold;">SEND</button>
+                <input type="text" id="msgInput" placeholder="Type a message..." style="flex-grow:1; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:10px; color:#fff; outline:none;">
+                <button id="sendBtn" style="background:var(--primary); border:none; padding:0 20px; border-radius:10px; cursor:pointer; font-weight:bold;">21</button>
             </div>
         </div>
     </div>
 
-    <script src='https://8x8.vc/vpaas-magic-cookie-406c855a01bc48d9a463a62883398c8c/external_api.js'></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -92,6 +85,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        // FIXED DATABASE URL FROM image_fc32cd.png
         const db = getDatabase(app, "https://classchat-afda9-default-rtdb.europe-west1.firebasedatabase.app");
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
@@ -111,7 +105,7 @@
         }
 
         document.getElementById('createRoom').onclick = () => {
-            const name = prompt("Room Name:");
+            const name = prompt("New Chat Name:");
             if (name) push(ref(db, "rooms"), { name: name });
         };
 
@@ -133,19 +127,18 @@
             });
         }
 
-        // --- CALLING LOGIC ---
         document.getElementById('joinCall').onclick = () => {
             document.getElementById('video-wrap').style.display = 'block';
-            const domain = "8x8.vc";
+            const domain = "meet.jit.si";
             const options = {
-                roomName: "vpaas-magic-cookie-406c855a01bc48d9a463a62883398c8c/ClassChat-" + currentRoomId,
+                roomName: "ClassChat-" + currentRoomId,
                 parentNode: document.querySelector('#video-frame'),
                 userInfo: { displayName: currentUser.name }
             };
             jitsiApi = new JitsiMeetExternalAPI(domain, options);
         };
 
-        window.endCall = () => {
+        document.getElementById('leaveCallBtn').onclick = () => {
             if (jitsiApi) jitsiApi.dispose();
             document.getElementById('video-wrap').style.display = 'none';
         };
