@@ -2,38 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ClassChat Pro | v3.0</title>
+    <title>ClassChat | Elite Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0b0e14; --surface: #1a1f26; --primary: #00d2ff; --text: #e1e1e1; --border: #2d343f; }
+        :root { --bg: #0b0e14; --surface: #1a1f26; --primary: #00d2ff; --text: #e1e1e1; --border: #2d343f; --sidebar: #13171f; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
         
         /* Auth Overlay */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 350px; text-align: center; }
-        .auth-card h1 { color: var(--primary); margin-bottom: 30px; }
-        .auth-btn { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .auth-btn { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
         .google-btn { background: #fff; color: #000; }
-        .guest-btn { background: var(--border); color: #fff; }
-        
+        .guest-btn { background: var(--primary); color: #000; }
+
         /* Main Layout */
-        #app { display: none; flex-direction: column; height: 100vh; }
-        header { padding: 15px 25px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        #app { display: none; flex-direction: row; height: 100vh; }
         
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        /* Sidebar */
+        #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        #room-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
+        .room-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .room-item.active { background: var(--primary); color: #000; font-weight: 700; }
         
-        .msg { display: flex; gap: 12px; align-items: flex-start; }
-        .pfp { width: 40px; height: 40px; border-radius: 10px; background: #333; object-fit: cover; }
-        .bubble { background: var(--surface); padding: 12px 16px; border-radius: 0 15px 15px 15px; border: 1px solid var(--border); max-width: 70%; }
-        .meta { font-size: 0.75rem; font-weight: 700; margin-bottom: 5px; display: flex; gap: 10px; }
+        /* Settings Tab */
+        .settings-footer { padding: 15px; border-top: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        .settings-footer:hover { background: var(--surface); }
+
+        /* Main Chat */
+        #main-chat { flex-grow: 1; display: flex; flex-direction: column; }
+        header { padding: 15px 25px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        #messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         
-        /* Input Area */
-        .input-area { padding: 20px; background: var(--bg); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
-        input[type="text"] { flex-grow: 1; background: var(--surface); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: #fff; outline: none; }
-        .file-label { cursor: pointer; color: var(--primary); font-size: 1.5rem; }
-        #file-input { display: none; }
-        
-        .file-link { color: var(--primary); text-decoration: none; font-weight: bold; border: 1px dashed var(--primary); padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px; }
+        /* Bubbles */
+        .msg { display: flex; gap: 10px; animation: fadeIn 0.2s ease; }
+        .pfp { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
+        .bubble { background: var(--surface); padding: 10px 14px; border-radius: 0 12px 12px 12px; border: 1px solid var(--border); max-width: 80%; }
+        .sender { font-size: 0.7rem; font-weight: 800; margin-bottom: 3px; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: 15px; width: 300px; }
+        input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -41,41 +53,58 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h1>ClassChat</h1>
-            <input type="text" id="guest-name" placeholder="Guest Nickname" style="width:90%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #444; background:#222; color:#fff;">
-            <input type="color" id="guest-color" value="#00d2ff" style="width:100%; height:40px; margin-bottom:20px; border:none; background:none; cursor:pointer;">
-            <button class="auth-btn guest-btn" onclick="loginGuest()">Enter as Guest</button>
-            <div style="margin: 15px 0; opacity: 0.5;">OR</div>
-            <button class="auth-btn google-btn" onclick="loginGoogle()">Sign in with Google</button>
+            <p style="opacity:0.6; font-size:0.8rem;">Select Entrance</p>
+            <button class="auth-btn google-btn" id="googleLogin">Sign in with Google</button>
+            <button class="auth-btn guest-btn" id="showGuest">Enter as Guest</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h3>User Settings</h3>
+            <label>Nickname:</label>
+            <input type="text" id="set-name">
+            <label>Chat Color:</label>
+            <input type="color" id="set-color" style="width:100%; margin-bottom:10px;">
+            <label>PFP URL:</label>
+            <input type="text" id="set-pfp" placeholder="Link to image...">
+            <button class="auth-btn guest-btn" id="save-settings">Save Changes</button>
+            <button class="auth-btn" style="background:none; color:gray;" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
         </div>
     </div>
 
     <div id="app">
-        <header>
-            <div style="font-weight: 800; color: var(--primary);">CLASSCHAT PRO</div>
-            <div id="user-display" style="font-size: 0.8rem; opacity: 0.7;"></div>
-        </header>
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <span>CHATS</span>
+                <button id="createRoom" style="background:none; border:none; color:var(--primary); font-size:1.5rem; cursor:pointer;">+</button>
+            </div>
+            <div id="room-list"></div>
+            <div class="settings-footer" onclick="document.getElementById('settings-modal').style.display='flex'">
+                <span id="user-pfp-small">⚙️</span> <span id="user-name-small">Settings</span>
+            </div>
+        </div>
 
-        <div id="chat-window"></div>
-
-        <div class="input-area">
-            <label for="file-input" class="file-label">📎</label>
-            <input type="file" id="file-input">
-            <input type="text" id="msgInput" placeholder="Type a message or upload file (max 200MB)...">
-            <button id="sendBtn" style="background:var(--primary); border:none; padding:10px 20px; border-radius:10px; font-weight:bold; cursor:pointer;">SEND</button>
+        <div id="main-chat">
+            <header><span id="current-room-name">ClassChat</span> <span style="opacity:0.3; font-size:0.7rem;">21-SECURE</span></header>
+            <div id="messages"></div>
+            <div style="padding:20px; display:flex; gap:10px; background:var(--bg);">
+                <input type="text" id="msgInput" placeholder="Type a message..." style="flex-grow:1; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:10px; color:#fff;">
+                <button id="sendBtn" style="background:var(--primary); border:none; padding:0 20px; border-radius:10px; cursor:pointer; font-weight:bold;">SEND</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getDatabase, ref, push, onChildAdded, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAQb65vp77W_SkO8mdiVuwuRqHaHJkQ0yQ",
             authDomain: "classchat-afda9.firebaseapp.com",
             projectId: "classchat-afda9",
-            storageBucket: "classchat-afda9.appspot.com", // Double check this in Storage tab!
+            storageBucket: "classchat-afda9.appspot.com",
             messagingSenderId: "760785144553",
             appId: "1:760785144553:web:213269aa2676ed3f5a7e78"
         };
@@ -83,86 +112,93 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app, "https://classchat-afda9-default-rtdb.europe-west1.firebasedatabase.app");
         const auth = getAuth(app);
-        const storage = getStorage(app);
         const provider = new GoogleAuthProvider();
 
         let currentUser = { name: "Guest", color: "#00d2ff", pfp: "https://api.dicebear.com/7.x/bottts/svg" };
+        let currentRoomId = null;
 
-        window.loginGuest = () => {
-            currentUser.name = document.getElementById('guest-name').value || "Guest";
-            currentUser.color = document.getElementById('guest-color').value;
-            currentUser.pfp = `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser.name}`;
-            startApp();
-        };
-
-        window.loginGoogle = () => {
-            signInWithPopup(auth, provider).then((result) => {
-                currentUser.name = result.user.displayName;
-                currentUser.pfp = result.user.photoURL;
-                currentUser.color = "#00d2ff";
+        // AUTH STATE PERSISTENCE
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser.name = user.displayName;
+                currentUser.pfp = user.photoURL;
                 startApp();
-            });
-        };
+            }
+        });
+
+        document.getElementById('googleLogin').onclick = () => signInWithPopup(auth, provider);
+        document.getElementById('showGuest').onclick = () => startApp();
 
         function startApp() {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
-            document.getElementById('user-display').innerText = `Logged in as: ${currentUser.name}`;
+            document.getElementById('user-name-small').innerText = currentUser.name;
+            document.getElementById('set-name').value = currentUser.name;
+            document.getElementById('set-pfp').value = currentUser.pfp;
+            loadRooms();
         }
 
-        const input = document.getElementById('msgInput');
-        const fileInput = document.getElementById('file-input');
+        // SETTINGS LOGIC
+        document.getElementById('save-settings').onclick = () => {
+            currentUser.name = document.getElementById('set-name').value;
+            currentUser.color = document.getElementById('set-color').value;
+            currentUser.pfp = document.getElementById('set-pfp').value;
+            document.getElementById('user-name-small').innerText = currentUser.name;
+            document.getElementById('settings-modal').style.display = 'none';
+        };
 
-        async function handleSend() {
-            const msg = input.value.trim();
-            const file = fileInput.files[0];
+        // ROOM LOGIC
+        document.getElementById('createRoom').onclick = () => {
+            const name = prompt("Room Name:");
+            if (name) push(ref(db, "rooms"), { name: name });
+        };
 
-            if (!msg && !file) return;
-
-            let fileData = null;
-            if (file) {
-                if (file.size > 200 * 1024 * 1024) return alert("File too big (Max 200MB)");
-                const storageRef = sRef(storage, 'uploads/' + Date.now() + '_' + file.name);
-                const snapshot = await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(snapshot.ref);
-                fileData = { url: url, name: file.name };
-            }
-
-            push(ref(db, "messages"), {
-                sender: currentUser.name,
-                text: msg,
-                color: currentUser.color,
-                pfp: currentUser.pfp,
-                file: fileData,
-                timestamp: Date.now()
+        function loadRooms() {
+            onChildAdded(ref(db, "rooms"), (snap) => {
+                const room = snap.val();
+                const div = document.createElement('div');
+                div.className = 'room-item';
+                div.innerText = "# " + room.name;
+                div.onclick = () => {
+                    currentRoomId = snap.key;
+                    document.querySelectorAll('.room-item').forEach(r => r.classList.remove('active'));
+                    div.classList.add('active');
+                    document.getElementById('current-room-name').innerText = "# " + room.name;
+                    loadMessages(snap.key);
+                };
+                document.getElementById('room-list').appendChild(div);
             });
-
-            input.value = "";
-            fileInput.value = "";
         }
 
-        document.getElementById('sendBtn').onclick = handleSend;
-        input.onkeydown = (e) => { if(e.key === 'Enter') handleSend(); };
+        function loadMessages(roomId) {
+            const msgDiv = document.getElementById('messages');
+            msgDiv.innerHTML = "";
+            off(ref(db, `room_messages/${roomId}`));
+            onChildAdded(ref(db, `room_messages/${roomId}`), (snap) => {
+                const d = snap.val();
+                const div = document.createElement('div');
+                div.className = 'msg';
+                div.innerHTML = `<img src="${d.pfp}" class="pfp"><div class="bubble"><div class="sender" style="color:${d.color}">${d.sender}</div><div>${d.text}</div></div>`;
+                msgDiv.appendChild(div);
+                msgDiv.scrollTop = msgDiv.scrollHeight;
+            });
+        }
 
-        onChildAdded(ref(db, "messages"), (snap) => {
-            const d = snap.val();
-            const div = document.createElement('div');
-            div.className = 'msg';
-            let content = d.text;
-            if (d.file) {
-                content += `<br><a href="${d.file.url}" target="_blank" class="file-link">📁 Download: ${d.file.name}</a>`;
-            }
-            div.innerHTML = `
-                <img src="${d.pfp}" class="pfp">
-                <div class="bubble">
-                    <div class="meta" style="color:${d.color}">${d.sender}</div>
-                    <div class="content">${content}</div>
-                </div>
-            `;
-            document.getElementById('chat-window').appendChild(div);
-            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-        });
+        function sendMessage() {
+            const input = document.getElementById('msgInput');
+            if (!input.value.trim() || !currentRoomId) return;
+            push(ref(db, `room_messages/${currentRoomId}`), {
+                sender: currentUser.name,
+                text: input.value,
+                color: currentUser.color,
+                pfp: currentUser.pfp
+            });
+            input.value = "";
+        }
 
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('msgInput').onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
+        window.onkeydown = (e) => { if(e.key === 'Escape') window.location.href = "https://en.wikipedia.org/wiki/Calculus"; };
     </script>
 </body>
 </html>
