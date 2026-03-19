@@ -1,27 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Calculus Notes - Section 4.2</title>
+    <title>Calculus Notes - Section 4.2: Integration Theory</title>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #fdfdfd; padding: 20px; color: #222; }
-        #chat-window { height: 400px; border: 1px dashed #bbb; overflow-y: scroll; padding: 15px; background: #fff; margin-bottom: 10px; }
-        .msg { margin-bottom: 8px; font-size: 14px; border-left: 3px solid #3498db; padding-left: 8px; }
-        .sender { font-weight: bold; color: #2980b9; font-family: monospace; }
-        .input-area { display: flex; gap: 5px; }
-        input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; }
-        button { padding: 10px 20px; cursor: pointer; font-weight: bold; background: #eee; border: 1px solid #aaa; }
+        body { font-family: 'Times New Roman', serif; background: #fdfdfd; padding: 25px; color: #222; line-height: 1.6; }
+        h2 { border-bottom: 1px solid #ccc; padding-bottom: 10px; font-weight: normal; color: #444; }
+        
+        #chat-window { 
+            height: 450px; 
+            border: 1px dashed #bbb; 
+            overflow-y: scroll; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            background: #fff; 
+        }
+
+        .msg { margin-bottom: 10px; font-size: 14px; border-left: 2px solid #3498db; padding-left: 10px; }
+        .sender { font-weight: bold; color: #2980b9; font-family: monospace; font-size: 12px; }
+        
+        .input-area { display: flex; gap: 8px; }
+        input { flex-grow: 1; padding: 12px; border: 1px solid #ccc; outline: none; }
+        button { padding: 10px 25px; background: #eee; border: 1px solid #aaa; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <h2>Unit 4: Limits and Continuous Functions</h2>
+    <p><i>Peer-to-peer data synchronization for calculus variables.</i></p>
+
     <div id="chat-window"></div>
+    
     <div class="input-area">
-        <input type="text" id="msgInput" placeholder="Enter data..." autocomplete="off">
+        <input type="text" id="msgInput" placeholder="Enter variable..." autocomplete="off">
         <button id="sendBtn">21</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // We MUST specify the database location for Europe
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -34,30 +50,44 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        
+        // CRITICAL FIX: Directing the app to Belgium
+        const db = getDatabase(app, "https://classchat-afda9-default-rdb.europe-west1.firebasedatabase.app");
+        
         const chatRef = ref(db, "messages");
-        const username = prompt("Agent Name:") || "User" + Math.floor(Math.random()*100);
+
+        const username = prompt("Agent Name:") || "User_" + Math.floor(Math.random()*100);
 
         const input = document.getElementById("msgInput");
+        const sendBtn = document.getElementById("sendBtn");
         const windowDiv = document.getElementById("chat-window");
 
-        document.getElementById("sendBtn").onclick = () => {
-            if (input.value.trim()) {
-                push(chatRef, { sender: username, message: input.value });
+        function sendMessage() {
+            const val = input.value.trim();
+            if (val !== "") {
+                push(chatRef, { sender: username, message: val });
                 input.value = "";
             }
-        };
+        }
 
-        onChildAdded(chatRef, (snap) => {
-            const data = snap.val();
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+        onChildAdded(chatRef, (snapshot) => {
+            const data = snapshot.val();
             const div = document.createElement("div");
             div.className = "msg";
             div.innerHTML = `<span class="sender">${data.sender}:</span> <span>${data.message}</span>`;
             windowDiv.appendChild(div);
-            windowDiv.scrollTop = windowDiv.scrollHeight;
+            windowDiv.scrollTop = windowDiv.scrollHeight; 
         });
 
-        window.onkeydown = (e) => { if(e.key === "Escape") window.location.href = "https://en.wikipedia.org/wiki/Calculus"; };
+        // The "Teacher is coming" Panic Key (Esc)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") {
+                window.location.href = "https://en.wikipedia.org/wiki/Calculus";
+            }
+        });
     </script>
 </body>
 </html>
